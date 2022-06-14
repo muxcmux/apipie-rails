@@ -1,5 +1,5 @@
 module Apipie
-  class ApipiesController < ActionController::Base
+  class ApipiesController < Apipie.configuration.base_controller.constantize
     include ActionView::Context
     include ApipieHelper
 

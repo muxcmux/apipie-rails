@@ -32,6 +32,8 @@ module Apipie
     # properly.
     attr_writer :reload_controllers
 
+    attr_accessor :base_controller
+
     # specify routes if used router differ from default e.g.
     #
     # Api::Engine.routes
@@ -148,6 +150,7 @@ module Apipie
       @markup = Apipie::Markup::RDoc.new
       @app_name = "Another API"
       @app_info = HashWithIndifferentAccess.new
+      @base_controller = 'ActionControlelr::Base'
       @copyright = nil
       @validate = :implicitly
       @validate_value = true
