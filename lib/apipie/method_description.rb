@@ -251,7 +251,7 @@ module Apipie
 
     def format_example(ex)
       example = { request: '', response: '' }
-      example[:request] << "// #{ex[:title]}\n" if ex[:title].present?
+      example[:title] = ex[:title]
       example[:request] << "#{ex[:verb]} #{ex[:path]}"
       example[:request] << "?#{ex[:query]}" unless ex[:query].blank?
       example[:request] << "\n\n" << format_example_data(ex[:request_data]).to_s if ex[:request_data]
