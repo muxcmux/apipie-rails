@@ -250,13 +250,13 @@ module Apipie
     end
 
     def format_example(ex)
-      example = ""
-      example << "// #{ex[:title]}\n" if ex[:title].present?
-      example << "#{ex[:verb]} #{ex[:path]}"
-      example << "?#{ex[:query]}" unless ex[:query].blank?
-      example << "\n" << format_example_data(ex[:request_data]).to_s if ex[:request_data]
-      example << "\n" << ex[:code].to_s
-      example << "\n" << format_example_data(ex[:response_data]).to_s if ex[:response_data]
+      example = { request: '', response: '' }
+      example[:request] << "// #{ex[:title]}\n" if ex[:title].present?
+      example[:request] << "#{ex[:verb]} #{ex[:path]}"
+      example[:request] << "?#{ex[:query]}" unless ex[:query].blank?
+      example[:request] << "\n\n" << format_example_data(ex[:request_data]).to_s if ex[:request_data]
+      example[:response] << ex[:code].to_s << ' ' << Rack::Utils::HTTP_STATUS_CODES[ex[:code]]
+      example[:response] << "\n\n" << format_example_data(ex[:response_data]).to_s if ex[:response_data]
       example
     end
 
