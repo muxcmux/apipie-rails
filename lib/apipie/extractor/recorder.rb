@@ -8,6 +8,8 @@ module Apipie
       end
 
       def analyse_env(env)
+        @title = env["APIPIE_EXAMPLE_TITLE"]
+        @show_in_doc = env["APIPIE_SHOW_IN_DOC"]
         @verb = env["REQUEST_METHOD"].to_sym
         @path = env["PATH_INFO"].sub(/^\/*/,"/")
         @query = env["QUERY_STRING"] unless env["QUERY_STRING"].blank?
@@ -104,15 +106,19 @@ module Apipie
 
       def record
         if @controller
-          {:controller => @controller,
-           :action => @action,
-           :verb => @verb,
-           :path => @path,
-           :params => @params,
-           :query => @query,
-           :request_data => @request_data,
-           :response_data => @response_data,
-           :code => @code}
+          {
+            title: @title,
+            show_in_doc: @show_in_doc,
+            controller: @controller,
+            action: @action,
+            verb: @verb,
+            path: @path,
+            params: @params,
+            query: @query,
+            request_data: @request_data,
+            response_data: @response_data,
+            code: @code
+          }
         else
           nil
         end

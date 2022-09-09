@@ -74,8 +74,7 @@ module Apipie
 
 
       def write_examples
-        merged_examples = merge_old_new_examples
-        self.class.write_recorded_examples(merged_examples)
+        self.class.write_recorded_examples(load_new_examples)
       end
 
       def write_docs
@@ -91,9 +90,7 @@ module Apipie
         end
       end
 
-
       protected
-
 
       def desc_to_s(description)
         "#{description[:controller].name}##{description[:action]}"
@@ -125,79 +122,16 @@ module Apipie
         hash
       end
 
-      def load_recorded_examples
-        self.class.load_recorded_examples
-      end
-
-      def merge_old_new_examples
-        new_examples = self.load_new_examples
-        old_examples = self.load_recorded_examples
-        merged_examples = []
-        (new_examples.keys + old_examples.keys).uniq.each do |key|
-          if new_examples.has_key?(key)
-            if old_examples.has_key?(key)
-              records = deep_merge_examples(new_examples[key], old_examples[key])
-            else
-              records = new_examples[key]
-            end
-          else
-            records = old_examples[key]
-          end
-          merged_examples << [key, records.map { |r| ordered_call(r) } ]
-        end
-        return merged_examples
-      end
-
-      def deep_merge_examples(new_examples, old_examples)
-        new_examples.map do |new_example|
-          # Use ordered to get compareble output (mainly for the :query)
-          new_example_ordered = ordered_call(new_example.dup)
-
-          # Comparing verb, versions and query
-          if old_example = old_examples.find{ |old_example| old_example["verb"] == new_example_ordered["verb"] && old_example["versions"] == new_example_ordered["versions"] && old_example["query"] == new_example_ordered["query"]}
-
-            # Take the 'show in doc' attribute from the old example if it is present and the configuration requests the value to be persisted.
-            new_example[:show_in_doc] = old_example["show_in_doc"] if Apipie.configuration.persist_show_in_doc && old_example["show_in_doc"].to_i > 0
-
-            # Always take the title from the old example if it exists.
-            new_example[:title] ||= old_example["title"] if old_example["title"].present?
-          end
-          new_example
-        end
-      end
-
       def load_new_examples
         @collector.records.reduce({}) do |h, (method, calls)|
-          showed_in_versions = Set.new
-          # we have already shown some example
           recorded_examples = calls.map do |call|
             method_descriptions = Apipie.get_method_descriptions(call[:controller], call[:action])
             call[:versions] = method_descriptions.map(&:version)
-
-            if Apipie.configuration.show_all_examples
-              show_in_doc = 1
-            elsif call[:versions].any? { |v| ! showed_in_versions.include?(v) }
-              call[:versions].each { |v| showed_in_versions << v }
-              show_in_doc = 1
-            else
-              show_in_doc = 0
-            end
-            example = call.merge(:show_in_doc => show_in_doc.to_i, :recorded => true)
+            example = call.merge(:show_in_doc => (call[:show_in_doc] || 0).to_i, :recorded => true)
             example
           end
           h.update(method => recorded_examples)
         end
-      end
-
-      def load_old_examples
-        if File.exists?(@examples_file)
-          if defined? SafeYAML
-            return YAML.load_file(@examples_file, :safe=>false)
-          else
-            return YAML.load_file(@examples_file)
-          end
-        end
-        return {}
       end
 
       def logger

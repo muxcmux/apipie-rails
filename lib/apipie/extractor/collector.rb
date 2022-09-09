@@ -17,6 +17,7 @@ module Apipie
       end
 
       def ignore_call?(record)
+        return true unless record[:title]
         return true unless record[:controller]
         return true if @ignored.include?(record[:controller].name)
         return true if @ignored.include?("#{Apipie.get_resource_name(record[:controller].name)}##{record[:action]}")
