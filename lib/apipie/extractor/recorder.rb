@@ -2,14 +2,20 @@ module Apipie
   module Extractor
     class Recorder
       MULTIPART_BOUNDARY = 'APIPIE_RECORDER_EXAMPLE_BOUNDARY'
+      EXAMPLE_TITLE = 'APIPIE_EXAMPLE_TITLE'
+      SHOW_IN_DOC = 'APIPIE_SHOW_IN_DOC'
+      REQUEST_HEADER = 'APIPIE_REQUEST_HEADER_'
+      RESPONSE_HEADER = 'APIPIE_RESPONSE_HEADER_'
 
       def initialize
         @ignored_params = [:controller, :action]
       end
 
       def analyse_env(env)
-        @title = env["APIPIE_EXAMPLE_TITLE"]
-        @show_in_doc = env["APIPIE_SHOW_IN_DOC"]
+        @request_headers = analyse_example_request_headers(env)
+        @response_headers = analyse_example_response_headers(env)
+        @title = env[EXAMPLE_TITLE]
+        @show_in_doc = env[SHOW_IN_DOC]
         @verb = env["REQUEST_METHOD"].to_sym
         @path = env["PATH_INFO"].sub(/^\/*/,"/")
         @query = env["QUERY_STRING"] unless env["QUERY_STRING"].blank?
@@ -22,6 +28,24 @@ module Apipie
           @request_data = reformat_multipart_data(form_hash)
         end
         rack_input.rewind
+      end
+
+      def analyse_example_request_headers(env)
+        headers = {}
+        env.each do |k, v|
+          next unless k.starts_with?(REQUEST_HEADER)
+          headers[k.gsub(REQUEST_HEADER, '')] = v
+        end
+        headers
+      end
+
+      def analyse_example_response_headers(env)
+        headers = {}
+        env.map do |k, v|
+          next unless k.starts_with?(RESPONSE_HEADER)
+          headers[k.gsub(RESPONSE_HEADER, '')] = v
+        end
+        headers
       end
 
       def analyse_controller(controller)
@@ -116,7 +140,9 @@ module Apipie
             params: @params,
             query: @query,
             request_data: @request_data,
+            request_headers: @request_headers,
             response_data: @response_data,
+            response_headers: @response_headers,
             code: @code
           }
         else

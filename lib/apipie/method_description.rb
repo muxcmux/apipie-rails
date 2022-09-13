@@ -255,8 +255,10 @@ module Apipie
       example[:request] = "#{ex[:verb]} #{ex[:path]}"
       example[:request] << "?#{ex[:query]}" unless ex[:query].blank?
       example[:request_body] = format_example_data(ex[:request_data]).to_s if ex[:request_data]
+      example[:request_headers] = ex[:request_headers].map { |k, v| [k, v].join(': ') }.join("\n")
       example[:response] = ex[:code].to_s << ' ' << Rack::Utils::HTTP_STATUS_CODES[ex[:code]]
       example[:response_body] = format_example_data(ex[:response_data]).to_s if ex[:response_data]
+      example[:response_headers] = ex[:response_headers].map { |k, v| [k, v].join(': ') }.join("\n")
       example
     end
 
